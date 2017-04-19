@@ -9,7 +9,7 @@ RUN rpm -Uvh https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-7-x86
 RUN yum update -y ; yum -y install postgresql96-server postgresql96-devel postgresql96-contrib ; yum clean all
 
 
-ENV PATH /usr/pgsql-9.6/bin:$PATH
+ENV PATH /usr/pgsql-9.6/bin:/:$PATH
 ENV PGDATA /var/lib/pgsql/data
 
 ADD ./postgresql-setup /usr/bin/postgresql-setup
@@ -24,17 +24,22 @@ RUN /usr/bin/postgresql-setup initdb
 #ADD ./postgresql.conf /var/lib/pgsql/data/postgresql.conf
 #RUN chown -v postgres.postgres /var/lib/pgsql/data/postgresql.conf
 
-#RUN echo "host    all             all             0.0.0.0/0               md5" >> /var/lib/pgsql/data/pg_hba.conf
+RUN echo "host    all             all             all               trust" >> /var/lib/pgsql/data/pg_hba.conf
 
 VOLUME ["/var/lib/pgsql"]
 
 EXPOSE 5432
 
 LABEL descr = Create user and cnfigure pg_hba.conf
-RUN  ./start_postgres.sh
-#CMD ["/bin/bash", "/start_postgres.sh"]
-#CMD ["/bin/bash"]
 
-USER postgres
-CMD ["/usr/pgsql-9.6/bin/postgres","-D","/var/lib/pgsql/data"]
+   #RUN  ./start_postgres.sh
+   #ENTRYPOINT ["/start_postgres.sh"]
+   #CMD ["/bin/bash"]
+
+   CMD ["/bin/bash", "/start_postgres.sh"]
+   #CMD ["postgres"]
+   #USER postgres
+   #CMD ["su", "postgres","-c","'/usr/pgsql-9.6/bin/postgres -D /var/lib/pgsql/data'"]
+
+
 

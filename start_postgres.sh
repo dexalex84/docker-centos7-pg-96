@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# to find correct folder 
-PG_VERSION=9.6
-
 DB_NAME=${POSTGRES_DB:-}
 DB_USER=${POSTGRES_USER:-}
 DB_PASS=${POSTGRES_PASSWORD:-}
@@ -10,6 +7,12 @@ PG_CONFDIR="/var/lib/pgsql/data"
 
 __create_user() {
   #Grant rights
+
+  #echo create user params:
+  #echo $DB_NAME
+  #echo $DB_USER
+  #echo $DB_PASS
+
   usermod -G wheel postgres
 
   # Check to see if we have pre-defined credentials to use
@@ -50,16 +53,18 @@ fi
 #}
 
 __run (){
-#su postgres -c "/usr/pgsql-$PG_VERSION/bin/postgres -D /var/lib/pgsql/data -p 5432"
+ #echo configure pg_hba.conf:
+ # not needet - done in dockerfile
+ #sed -i -e 's/ident/trust/g' /var/lib/pgsql/data/pg_hba.conf
+ #sed -i -e 's/md5/trust/g' /var/lib/pgsql/data/pg_hba.conf
+ #sed -i -e 's/peer/trust/g' /var/lib/pgsql/data/pg_hba.conf
 
-echo configure pg_hba.conf
+echo configure postgresql.conf:
+sed -itmp -e 's/#listen_addresses = \x27localhost\x27/listen_addresses = \x27*\x27/g' /var/lib/pgsql/data/postgresql.conf
 
-sed -i -e 's/ident/trust/g' /var/lib/pgsql/data/pg_hba.conf
-sed -i -e 's/md5/trust/g' /var/lib/pgsql/data/pg_hba.conf
-sed -i -e 's/peer/trust/g' /var/lib/pgsql/data/pg_hba.conf
+echo run server:
+su postgres -c '/usr/pgsql-9.6/bin/postgres -D /var/lib/pgsql/data'
 
-#echo start pg
-#su postgres -c 'pg_ctl start'
 }
 
 # Call all functions
